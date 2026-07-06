@@ -7,5 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './produto.css',
 })
 export class Produto {
-
+produto = 'Notebook';
+preco = 2500;
 }
