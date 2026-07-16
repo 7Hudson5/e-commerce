@@ -38,4 +38,9 @@ valorTotal = computed(() => {
  return this.produtos().reduce
  ((total, item) => total + item.preco, 0);
 });
+subtituiProdutos(){
+   this.produtos.set([
+      {nome: 'Arroz Fazenda', preco: 13.56}
+   ]);
+}
 }
