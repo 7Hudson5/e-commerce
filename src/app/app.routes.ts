@@ -32,6 +32,8 @@
 // código final lazyloading e loadcomponents
 
 import { Routes } from "@angular/router";
+import { authGuard } from "./core/auth.guard"; //importa o metodo authGuard
+
 export const routes: Routes = [
 
 {
@@ -50,6 +52,7 @@ export const routes: Routes = [
 
 {
    path:'carrinho',
+   canActivate: [authGuard], // adiciona um autenticador para acesso do carrinho
    loadComponent: () =>
        import('./features/carrinho/carrinho/carrinho').then((m) =>m.Carrinho),
 
