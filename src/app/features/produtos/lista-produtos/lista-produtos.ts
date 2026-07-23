@@ -5,6 +5,7 @@ import { computed } from '@angular/core';
 import { PrecoFormatadoPipe } from '../../../shared/pipes/preco-formatado-pipe';
 import { effect } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-lista-produtos',
@@ -14,14 +15,41 @@ import { UpperCasePipe } from '@angular/common';
 })
 
 export class ListaProdutos {
-produtos = signal([
+
+// ! remover a lista de produtos, agora os dados vão ser carregados via API Fakerstoreapi
+  produtos = signal <
    
-  {nome: 'Teclado Gamer', preco:149.99},
-  {nome: 'Mouse Gamer', preco:299.99},
-  {nome: 'Monitor Gamer', preco:1599.99},
-  {nome: 'Desktop Gamer', preco:4999.99},
-  {nome: 'Headset Gamer', preco:699.99},
-]);
+  {nome: string ; preco: number} []> ([]);
+
+// ? criar estado de carregamento, 
+// ** true: requisição em andamento, exibir dados no template
+// ! false: esconder indicador e exibir a lista de produtos
+carregando = signal(true);
+
+//!cria um método para a requisição dos produtos
+carregarProdutos(){
+  //! inicia o loading
+  this.carregando.set(true);
+  this.http.get < {title: string; price: number }[]>
+    ('https://fakestoreapi.com/products')
+      .subscribe({
+        next: (dados) => {
+
+          //!adapta a API para nosso projeto
+          const produtosFormatados = dados.map (p => ({
+            nome: p.title,
+            preco: p.price
+          }));
+          this.produtos.set(produtosFormatados);
+          this.carregando.set(false); 
+        },
+  //? finaliza loading
+  error: (erro) => {
+    console.error('Erro ao carregar a produtos: ', erro);
+    this.carregando.set(false); //! evita loading infinitos
+  }
+      });
+}
 
 exibirProduto (nome:string){
    //console.log ('Produto selecionado: ', nome);
@@ -48,7 +76,12 @@ subtituiProdutos(){
    ]);
 
 }
-constructor(){
+// ! injetar httpClient dentro de construct, restruturar construct!!!
+constructor( private http: HttpClient ){
+  //! carregar a API
+  this.carregarProdutos();
+
+  //! effects continuam iguais
  effect(() => {
    console.log('Lista de Produtos Alterados:', this.produtos());
  });
