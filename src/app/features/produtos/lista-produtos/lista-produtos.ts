@@ -5,7 +5,8 @@ import { computed } from '@angular/core';
 import { PrecoFormatadoPipe } from '../../../shared/pipes/preco-formatado-pipe';
 import { effect } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { produtosService } from '../produtos.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-lista-produtos',
@@ -28,27 +29,20 @@ carregando = signal(true);
 
 //!cria um método para a requisição dos produtos
 carregarProdutos(){
-  //! inicia o loading
-  this.carregando.set(true);
-  this.http.get < {title: string; price: number }[]>
-    ('https://fakestoreapi.com/products')
-      .subscribe({
-        next: (dados) => {
 
-          //!adapta a API para nosso projeto
-          const produtosFormatados = dados.map (p => ({
-            nome: p.title,
-            preco: p.price
-          }));
-          this.produtos.set(produtosFormatados);
-          this.carregando.set(false); 
+  this.carregando.set(true);
+
+  this.produtosService.buscarProdutos().subscribe({
+        next: (dados) => {
+          const produtos = this.produtosService.transformarProdutos(dados);
+          this.produtos.set(produtos);
+          this.carregando.set(false);
         },
-  //? finaliza loading
-  error: (erro) => {
-    console.error('Erro ao carregar a produtos: ', erro);
-    this.carregando.set(false); //! evita loading infinitos
-  }
-      });
+        error: (erro) => {
+          console.error('erro ao carregar os produtos:, ', erro);
+          this.carregando.set(false);
+        },
+  });
 }
 
 exibirProduto (nome:string){
@@ -76,8 +70,8 @@ subtituiProdutos(){
    ]);
 
 }
-// ! injetar httpClient dentro de construct, restruturar construct!!!
-constructor( private http: HttpClient ){
+// ? metodo http (API) foi modificado para (produto services)!!!
+constructor(){
   //! carregar a API
   this.carregarProdutos();
 
@@ -110,4 +104,7 @@ if (typeof document !== 'undefined') {
       total + item.preco,0);
    
 });
+
+//? ================= INJECT ===================
+private produtosService = inject(produtosService);
 }
